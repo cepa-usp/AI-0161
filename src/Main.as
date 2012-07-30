@@ -321,7 +321,7 @@
 						//tweenX = new Tween(peca, "x", None.easeNone, peca.x, fundoDrop.x, tweenTime, true);
 						//tweenY = new Tween(peca, "y", None.easeNone, peca.y, fundoDrop.y + 20, tweenTime, true);
 						
-						Actuate.tween(pecaFundo, tweenTime, { x:fundoPeca.x, y:fundoPeca.y} );
+						Actuate.tween(pecaFundo, tweenTime, { x:fundoPeca.x, y:fundoPeca.y + 10} );
 						//tweenX2 = new Tween(pecaFundo, "x", None.easeNone, pecaFundo.x, fundoPeca.x, tweenTime, true);
 						//tweenY2 = new Tween(pecaFundo, "y", None.easeNone, pecaFundo.y, fundoPeca.y + 20, tweenTime, true);
 						
@@ -339,7 +339,7 @@
 						peca.y = fundoDrop.y + 10;
 						peca.gotoAndStop(2);
 						
-						Actuate.tween(pecaFundo, tweenTime, { x:fundoPeca.x, y:fundoPeca.y} );
+						Actuate.tween(pecaFundo, tweenTime, { x:fundoPeca.x, y:fundoPeca.y + 10} );
 						//tweenX2 = new Tween(pecaFundo, "x", None.easeNone, pecaFundo.x, pecaFundo.inicialPosition.x, tweenTime, true);
 						//tweenY2 = new Tween(pecaFundo, "y", None.easeNone, pecaFundo.y, pecaFundo.inicialPosition.y, tweenTime, true);
 						
