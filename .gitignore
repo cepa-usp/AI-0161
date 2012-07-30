@@ -1,0 +1,8 @@
+# Ignora os arquivos gerados pelo FlashDevelop
+/bin
+
+# Ignora a versão anterior da configuração do projeto FlashDevelop
+/obj/*.old
+
+# Ignora o arquivo de log do publish.sh
+/publish.log
