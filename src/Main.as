@@ -32,6 +32,7 @@
 		private var tweenTime:Number = 0.2;
 		private var pecas:Array = [];
 		private var fundos:Array = [];
+		private var pecasWover:Array = [];
 		
 		override protected function init():void 
 		{
@@ -88,6 +89,7 @@
 			finaliza.buttonMode = true;
 		}
 		
+		private var wrongWcolor:Boolean = false;
 		private function finalizaExec(e:MouseEvent):void 
 		{
 			if (checkForFinish()) {
@@ -100,6 +102,9 @@
 					if(Peca(child).fundo.indexOf(Peca(child).currentFundo) != -1){
 						nCertas++;
 						trace(Peca(child).nome);
+					}else {
+						child.filters = [fundoFilter];
+						wrongWcolor = true;
 					}
 				}
 				
@@ -110,6 +115,8 @@
 				}
 				else {
 					feedbackScreen.setText("Parabéns!\nSua resposta está correta!");
+					fixOverOut();
+					travaPecas();
 				}
 				
 				if (!completed) {
@@ -117,8 +124,6 @@
 					score = currentScore;
 					saveStatus();
 					commit();
-					
-					travaPecas();
 				}
 			}else {
 				feedbackScreen.setText("Você precisa posicionar todas as peças antes de finalizar.");
@@ -215,6 +220,13 @@
 		private var fundoWGlow:MovieClip;
 		private function verifyForFilter(e:Event):void 
 		{
+			if (wrongWcolor) {
+				for each (var item:Peca in pecas) 
+				{
+					item.filters = [];
+				}
+				wrongWcolor = false;
+			}
 			pecaDragging = Peca(e.target);
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, verifying);
 		}
@@ -356,7 +368,7 @@
 		private function getFundoByName(name:String):Fundo 
 		{
 			if (name == "") return null;
-			for each (var child:Peca in pecas) {
+			for each (var child:Fundo in fundos) {
 				if (child.name == name) return Fundo(child);
 			}
 			
@@ -422,6 +434,18 @@
 		{
 			peca.addEventListener(MouseEvent.MOUSE_OVER, overChid);
 			peca.addEventListener(MouseEvent.MOUSE_OUT, outChid);
+			pecasWover.push(peca);
+		}
+		
+		private function fixOverOut():void 
+		{
+			for each (var peca:Peca in pecasWover) 
+			{
+				peca.removeEventListener(MouseEvent.MOUSE_OVER, overChid);
+				peca.removeEventListener(MouseEvent.MOUSE_OUT, outChid);
+				peca.gotoAndStop(4);
+				peca.currentFundo.height = peca.height;
+			}
 		}
 		
 		private var alturaPecaOver:Number;
