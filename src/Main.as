@@ -1,6 +1,7 @@
 ﻿package 
 {
 	import BaseAssets.BaseMain;
+	import BaseAssets.events.BaseEvent;
 	import BaseAssets.tutorial.CaixaTexto;
 	import com.adobe.serialization.json.JSON;
 	import cepa.utils.ToolTip;
@@ -19,7 +20,6 @@
 	import flash.geom.Rectangle;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
-	import flash.utils.setTimeout;
 	import flash.utils.Timer;
 	import pipwerks.SCORM;
 	
@@ -29,25 +29,13 @@
 	 */
 	public class Main extends BaseMain
 	{
-		//private var tweenX:Tween;
-		//private var tweenY:Tween;
-		//
-		//private var tweenX2:Tween;
-		//private var tweenY2:Tween;
-		
 		private var tweenTime:Number = 0.2;
-		
-		private var fundoLayer:Sprite;
-		private var pecasLayer:Sprite;
+		private var pecas:Array = [];
+		private var fundos:Array = [];
 		
 		override protected function init():void 
 		{
-			fundoLayer = new Sprite();
-			addChild(fundoLayer);
-			pecasLayer = new Sprite();
-			addChild(pecasLayer);
-			
-			//organizeLayers();
+			organizeLayers();
 			addListeners();
 			createAnswer();
 			
@@ -57,7 +45,7 @@
 					if(mementoSerialized != "" && mementoSerialized != "null") recoverStatus(mementoSerialized);
 				}
 			}
-			verificaFinaliza();
+			//verificaFinaliza();
 			
 			
 			if (completed) {
@@ -69,14 +57,28 @@
 		
 		private function organizeLayers():void 
 		{
+			layerAtividade.addChild(setas);
+			layerAtividade.addChild(entrada);
+			layerAtividade.addChild(finaliza);
+			
 			for (var i:int = 0; i < numChildren; i++) 
 			{
 				var child:DisplayObject = getChildAt(i);
 				if (child is Peca) {
-					addChild(child)
+					pecas.push(child);
 				}else if (child is Fundo) {
-					addChild(child);
+					fundos.push(child);
 				}
+			}
+			
+			for each (var fundo:Fundo in fundos) 
+			{
+				layerAtividade.addChild(fundo);
+			}
+			
+			for each (var peca:Peca in pecas) 
+			{
+				layerAtividade.addChild(peca);
 			}
 		}
 		
@@ -88,51 +90,46 @@
 		
 		private function finalizaExec(e:MouseEvent):void 
 		{
-			var nCertas:int = 0;
-			var nPecas:int = 0;
-			
-			for (var i:int = 0; i < numChildren; i++) 
-			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Peca) {
+			if (checkForFinish()) {
+				var nCertas:int = 0;
+				var nPecas:int = 0;
+				
+				for each (var child:Peca in pecas) 
+				{
 					nPecas++;
 					if(Peca(child).fundo.indexOf(Peca(child).currentFundo) != -1){
 						nCertas++;
 						trace(Peca(child).nome);
 					}
 				}
-			}
-			
-			var currentScore:Number = int((nCertas / nPecas) * 100);
-			
-			if (currentScore < 100) {
-				feedbackScreen.setText("Ops!... \nReveja sua resposta.\nInicie uma nova tentativa para refazer o exercício.");
-			}
-			else {
-				feedbackScreen.setText("Parabéns!\nSua resposta está correta!");
-			}
-			
-			if (!completed) {
-				completed = true;
-				score = currentScore;
-				saveStatus();
-				commit();
 				
-				travaPecas();
+				var currentScore:Number = int((nCertas / nPecas) * 100);
+				
+				if (currentScore < 100) {
+					feedbackScreen.setText("Ops!... \nReveja sua resposta.\nInicie uma nova tentativa para refazer o exercício.");
+				}
+				else {
+					feedbackScreen.setText("Parabéns!\nSua resposta está correta!");
+				}
+				
+				if (!completed) {
+					completed = true;
+					score = currentScore;
+					saveStatus();
+					commit();
+					
+					travaPecas();
+				}
+			}else {
+				feedbackScreen.setText("Você precisa posicionar todas as peças antes de finalizar.");
 			}
-			
-			//setChildIndex(feedbackScreen, numChildren - 1);
-			//setChildIndex(bordaAtividade, numChildren - 1);
 		}
 		
 		private function travaPecas():void 
 		{
-			for (var i:int = 0; i < numChildren; i++) 
+			for each (var child:Peca in pecas) 
 			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Peca) {
-					Peca(child).mouseEnabled = false;
-				}
+				Peca(child).lock();
 			}
 			
 			//finaliza.mouseEnabled = false;
@@ -144,15 +141,11 @@
 		
 		private function verificaFinaliza():void 
 		{
-			for (var i:int = 0; i < numChildren; i++) 
-			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Peca) {
-					if(Peca(child).currentFundo == null){
-						finaliza.mouseEnabled = false;
-						finaliza.alpha = 0.5;
-						return;
-					}
+			for each (var child:Peca in pecas) 			{
+				if(Peca(child).currentFundo == null){
+					finaliza.mouseEnabled = false;
+					finaliza.alpha = 0.5;
+					return;
 				}
 			}
 			
@@ -162,13 +155,8 @@
 		
 		private function checkForFinish():Boolean
 		{
-			for (var i:int = 0; i < numChildren; i++) 
-			{
-				var child:DisplayObject = getChildAt(i);
-				
-				if (child is Peca) {
-					if (Peca(child).currentFundo == null) return false;
-				}
+			for each (var child:Peca in pecas)  {
+				if (Peca(child).currentFundo == null) return false;
 			}
 			
 			return true;
@@ -176,22 +164,18 @@
 		
 		private function createAnswer():void 
 		{
-			for (var i:int = 0; i < numChildren; i++) 
-			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Peca) {
-					setAnswerForPeca(Peca(child));
-					var objClass:Class = Class(getDefinitionByName(getQualifiedClassName(child)));
-					var ghostObj:* = new objClass();
-					MovieClip(ghostObj).gotoAndStop(1);
-					Peca(child).ghost = ghostObj;
-					Peca(child).addListeners();
-					Peca(child).inicialPosition = new Point(child.x, child.y);
-					child.addEventListener("paraArraste", verifyPosition);
-					child.addEventListener("iniciaArraste", verifyForFilter);
-					Peca(child).buttonMode = true;
-					Peca(child).gotoAndStop(1);
-				}
+			for each (var child:Peca in pecas)  {
+				setAnswerForPeca(Peca(child));
+				var objClass:Class = Class(getDefinitionByName(getQualifiedClassName(child)));
+				var ghostObj:* = new objClass();
+				MovieClip(ghostObj).gotoAndStop(1);
+				Peca(child).ghost = ghostObj;
+				Peca(child).addListeners();
+				Peca(child).inicialPosition = new Point(child.x, child.y);
+				child.addEventListener("paraArraste", verifyPosition);
+				child.addEventListener("iniciaArraste", verifyForFilter);
+				Peca(child).buttonMode = true;
+				Peca(child).gotoAndStop(1);
 			}
 		}
 		
@@ -201,13 +185,9 @@
 			
 			status.pecas = new Object();
 			
-			for (var i:int = 0; i < numChildren; i++)
-			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Peca) {
-					if (Peca(child).currentFundo != null) status.pecas[child.name] = Peca(child).currentFundo.name;
-					else status.pecas[child.name] = "null";
-				}
+			for each (var child:Peca in pecas)  {
+				if (Peca(child).currentFundo != null) status.pecas[child.name] = Peca(child).currentFundo.name;
+				else status.pecas[child.name] = "null";
 			}
 			
 			mementoSerialized = JSON.encode(status);
@@ -217,17 +197,13 @@
 		{
 			var status:Object = JSON.decode(memento);
 			
-			for (var i:int = 0; i < numChildren; i++)
-			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Peca) {
-					if (status.pecas[child.name] != "null") {
-						Peca(child).currentFundo = getFundoByName(status.pecas[child.name]);
-						Fundo(Peca(child).currentFundo).currentPeca = Peca(child);
-						Peca(child).x = Peca(child).currentFundo.x;
-						Peca(child).y = Peca(child).currentFundo.y + 10;
-						Peca(child).gotoAndStop(2);
-					}
+			for each (var child:Peca in pecas) {
+				if (status.pecas[child.name] != "null") {
+					Peca(child).currentFundo = getFundoByName(status.pecas[child.name]);
+					Fundo(Peca(child).currentFundo).currentPeca = Peca(child);
+					Peca(child).x = Peca(child).currentFundo.x;
+					Peca(child).y = Peca(child).currentFundo.y + 10;
+					Peca(child).gotoAndStop(2);
 				}
 			}
 			
@@ -339,7 +315,7 @@
 						peca.y = fundoDrop.y + 10;
 						peca.gotoAndStop(2);
 						
-						Actuate.tween(pecaFundo, tweenTime, { x:pecaFundo.inicialPosition.x, y:pecaFundo.inicialPosition.y + 10} );
+						Actuate.tween(pecaFundo, tweenTime, { x:pecaFundo.inicialPosition.x, y:pecaFundo.inicialPosition.y} );
 						//tweenX2 = new Tween(pecaFundo, "x", None.easeNone, pecaFundo.x, pecaFundo.inicialPosition.x, tweenTime, true);
 						//tweenY2 = new Tween(pecaFundo, "y", None.easeNone, pecaFundo.y, pecaFundo.inicialPosition.y, tweenTime, true);
 						
@@ -362,7 +338,7 @@
 				peca.gotoAndStop(1);
 			}
 			
-			verificaFinaliza();
+			//verificaFinaliza();
 			
 			//setTimeout(saveStatus, (tweenTime + 0.1) * 1000);
 			Actuate.timer(tweenTime + 0.1).onComplete(saveStatus);
@@ -370,26 +346,20 @@
 		
 		private function getFundo(position:Point):Fundo 
 		{
-			for (var i:int = 0; i < numChildren; i++)
-			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Fundo) {
-					if (child.hitTestPoint(position.x, position.y)) return Fundo(child);
-				}
+			for each (var child:Fundo in fundos)  {
+				if (child.hitTestPoint(position.x, position.y)) return Fundo(child);
 			}
+			
 			return null;
 		}
 		
 		private function getFundoByName(name:String):Fundo 
 		{
 			if (name == "") return null;
-			for (var i:int = 0; i < numChildren; i++)
-			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Fundo) {
-					if (child.name == name) return Fundo(child);
-				}
+			for each (var child:Peca in pecas) {
+				if (child.name == name) return Fundo(child);
 			}
+			
 			return null;
 		}
 		
@@ -482,21 +452,19 @@
 		
 		override public function reset(e:MouseEvent = null):void
 		{
-			for (var i:int = 0; i < numChildren; i++)
-			{
-				var child:DisplayObject = getChildAt(i);
-				if (child is Peca) {
-					child.x = Peca(child).inicialPosition.x;
-					child.y = Peca(child).inicialPosition.y;
-					Peca(child).currentFundo = null;
-					Peca(child).gotoAndStop(1);
-				}
-				if (child is Fundo) {
-					Fundo(child).currentPeca = null;
-				}
+			for each (var child:Peca in pecas)  {
+				child.x = Peca(child).inicialPosition.x;
+				child.y = Peca(child).inicialPosition.y;
+				Peca(child).currentFundo = null;
+				Peca(child).gotoAndStop(1);
+				child.lock();
+				child.addListeners();
+			}
+			for each (var child2:Fundo in fundos)  {
+				Fundo(child2).currentPeca = null;
 			}
 			
-			verificaFinaliza();
+			//verificaFinaliza();
 			saveStatus();
 		}
 		
@@ -514,10 +482,12 @@
 		
 		override public function iniciaTutorial(e:MouseEvent = null):void  
 		{
+			blockAI();
+			
 			tutoPos = 0;
 			if(balao == null){
-				balao = new CaixaTexto(true);
-				addChild(balao);
+				balao = new CaixaTexto();
+				layerTuto.addChild(balao);
 				balao.visible = false;
 				
 				pointsTuto = 	[new Point(405, 460),
@@ -530,24 +500,32 @@
 								[CaixaTexto.RIGHT, CaixaTexto.FIRST],
 								[CaixaTexto.TOP, CaixaTexto.FIRST]];
 			}
-			balao.removeEventListener(Event.CLOSE, closeBalao);
+			balao.removeEventListener(BaseEvent.NEXT_BALAO, closeBalao);
 			
 			balao.setText(tutoSequence[tutoPos], tutoBaloonPos[tutoPos][0], tutoBaloonPos[tutoPos][1]);
 			balao.setPosition(pointsTuto[tutoPos].x, pointsTuto[tutoPos].y);
-			balao.addEventListener(Event.CLOSE, closeBalao);
-			balao.visible = true;
+			balao.addEventListener(BaseEvent.NEXT_BALAO, closeBalao);
+			balao.addEventListener(BaseEvent.CLOSE_BALAO, iniciaAi);
 		}
 		
 		private function closeBalao(e:Event):void 
 		{
 			tutoPos++;
 			if (tutoPos >= tutoSequence.length) {
-				balao.removeEventListener(Event.CLOSE, closeBalao);
+				balao.removeEventListener(BaseEvent.NEXT_BALAO, closeBalao);
 				balao.visible = false;
+				iniciaAi(null);
 			}else {
 				balao.setText(tutoSequence[tutoPos], tutoBaloonPos[tutoPos][0], tutoBaloonPos[tutoPos][1]);
 				balao.setPosition(pointsTuto[tutoPos].x, pointsTuto[tutoPos].y);
 			}
+		}
+		
+		private function iniciaAi(e:BaseEvent):void 
+		{
+			balao.removeEventListener(BaseEvent.CLOSE_BALAO, iniciaAi);
+			balao.removeEventListener(BaseEvent.NEXT_BALAO, closeBalao);
+			unblockAI();
 		}
 		
 		

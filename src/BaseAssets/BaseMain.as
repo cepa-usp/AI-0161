@@ -263,16 +263,6 @@ package BaseAssets
 			
 		}
 		
-		//override public function addChild(child:DisplayObject):flash.display.DisplayObject 
-		//{
-			//return layerAtividade.addChild(child);
-		//}
-		//
-		//override public function get numChildren():int 
-		//{
-			//return layerAtividade.numChildren;
-		//}
-		
 	}
 
 }

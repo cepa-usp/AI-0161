@@ -32,6 +32,11 @@ package
 			addEventListener(MouseEvent.MOUSE_DOWN, initArraste);
 		}
 		
+		public function lock():void
+		{
+			removeEventListener(MouseEvent.MOUSE_DOWN, initArraste);
+		}
+		
 		private function initArraste(e:MouseEvent):void 
 		{
 			dispatchEvent(new Event("iniciaArraste", true));
