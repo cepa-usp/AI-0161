@@ -339,7 +339,7 @@
 						peca.y = fundoDrop.y + 10;
 						peca.gotoAndStop(2);
 						
-						Actuate.tween(pecaFundo, tweenTime, { x:fundoPeca.x, y:fundoPeca.y + 10} );
+						Actuate.tween(pecaFundo, tweenTime, { x:pecaFundo.inicialPosition.x, y:pecaFundo.inicialPosition.y + 10} );
 						//tweenX2 = new Tween(pecaFundo, "x", None.easeNone, pecaFundo.x, pecaFundo.inicialPosition.x, tweenTime, true);
 						//tweenY2 = new Tween(pecaFundo, "y", None.easeNone, pecaFundo.y, pecaFundo.inicialPosition.y, tweenTime, true);
 						
