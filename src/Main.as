@@ -181,7 +181,7 @@
 				setAnswerForPeca(Peca(child));
 				var objClass:Class = Class(getDefinitionByName(getQualifiedClassName(child)));
 				var ghostObj:* = new objClass();
-				MovieClip(ghostObj).gotoAndStop(1);
+				MovieClip(ghostObj).gotoAndStop(2);
 				Peca(child).ghost = ghostObj;
 				Peca(child).addListeners();
 				Peca(child).inicialPosition = new Point(child.x, child.y);
