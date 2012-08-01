@@ -39,6 +39,7 @@ package BaseAssets.screens
 
 			this.scaleX = this.scaleY = 0;
 			this.visible = false;
+			glassPane.alpha = 0;
 			
 			stats.nTotal = 0;
 			stats.nValendo = 0;
@@ -58,7 +59,7 @@ package BaseAssets.screens
 		
 		private function closeScreen(e:MouseEvent):void 
 		{
-			Actuate.tween(glassPane, 0.4, { scaleX:0, scaleY:0 } );
+			Actuate.tween(glassPane, 0.4, { /*scaleX:0, scaleY:0*/alpha:0 } );
 			Actuate.tween(this, 0.4, { scaleX:0, scaleY:0 } ).onComplete(turnInvisible);
 		}
 		
@@ -78,7 +79,7 @@ package BaseAssets.screens
 			glassPane.scaleX = glassPane.scaleY = 0;
 			this.visible = true;
 			glassPane.visible = true;
-			Actuate.tween(glassPane, 0.4, { scaleX:1, scaleY:1 } );
+			Actuate.tween(glassPane, 0.4, { /*scaleX:1, scaleY:1*/alpha:1 } );
 			Actuate.tween(this, 0.6, { scaleX:1, scaleY:1 } ).ease(Elastic.easeOut);
 		}
 		

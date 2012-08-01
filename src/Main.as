@@ -71,10 +71,16 @@
 					fundos.push(child);
 				}
 			}
-			
+			var rectImage:Rectangle = new Rectangle();
+			rectImage.topLeft = new Point( -45, -6);
+			rectImage.bottomRight = new Point(45, 6);
 			for each (var fundo:Fundo in fundos) 
 			{
 				layerAtividade.addChild(fundo);
+				fundo.scale9Grid = rectImage;
+				if (fundo is FundoComBorda) {
+					drawBorder(fundo);
+				}
 			}
 			
 			for each (var peca:Peca in pecas) 
@@ -112,19 +118,21 @@
 				
 				if (currentScore < 100) {
 					feedbackScreen.setText("Ops!... \nReveja sua resposta.\nInicie uma nova tentativa para refazer o exercício.");
+					completed = false;
 				}
 				else {
 					feedbackScreen.setText("Parabéns!\nSua resposta está correta!");
 					fixOverOut();
 					travaPecas();
+					completed = true;
 				}
 				
-				if (!completed) {
-					completed = true;
+				//if (!completed) {
+					//completed = true;
 					score = currentScore;
 					saveStatus();
 					commit();
-				}
+				//}
 			}else {
 				feedbackScreen.setText("Você precisa posicionar todas as peças antes de finalizar.");
 			}
@@ -207,7 +215,7 @@
 					Peca(child).currentFundo = getFundoByName(status.pecas[child.name]);
 					Fundo(Peca(child).currentFundo).currentPeca = Peca(child);
 					Peca(child).x = Peca(child).currentFundo.x;
-					Peca(child).y = Peca(child).currentFundo.y + 10;
+					Peca(child).y = Peca(child).currentFundo.y;
 					Peca(child).gotoAndStop(2);
 				}
 			}
@@ -298,18 +306,18 @@
 					//tweenX = new Tween(peca, "x", None.easeNone, peca.x, fundoDrop.x, 0.5, true);
 					//tweenY = new Tween(peca, "y", None.easeNone, peca.y, fundoDrop.y, 0.5, true);
 					peca.x = fundoDrop.x;
-					peca.y = fundoDrop.y + 10;
+					peca.y = fundoDrop.y;
 					peca.gotoAndStop(2);
 				}else {
 					if(peca.currentFundo != null){
 						var pecaFundo:Peca = Peca(fundoDrop.currentPeca);
 						var fundoPeca:Fundo = Fundo(peca.currentFundo);
 						
-						Actuate.tween(peca, tweenTime, { x:fundoDrop.x, y:fundoDrop.y + 10 } );
+						Actuate.tween(peca, tweenTime, { x:fundoDrop.x, y:fundoDrop.y} );
 						//tweenX = new Tween(peca, "x", None.easeNone, peca.x, fundoDrop.x, tweenTime, true);
 						//tweenY = new Tween(peca, "y", None.easeNone, peca.y, fundoDrop.y + 20, tweenTime, true);
 						
-						Actuate.tween(pecaFundo, tweenTime, { x:fundoPeca.x, y:fundoPeca.y + 10} );
+						Actuate.tween(pecaFundo, tweenTime, { x:fundoPeca.x, y:fundoPeca.y} );
 						//tweenX2 = new Tween(pecaFundo, "x", None.easeNone, pecaFundo.x, fundoPeca.x, tweenTime, true);
 						//tweenY2 = new Tween(pecaFundo, "y", None.easeNone, pecaFundo.y, fundoPeca.y + 20, tweenTime, true);
 						
@@ -324,7 +332,7 @@
 						//tweenX = new Tween(peca, "x", None.easeNone, peca.position.x, fundoDrop.x, tweenTime, true);
 						//tweenY = new Tween(peca, "y", None.easeNone, peca.position.y, fundoDrop.y, tweenTime, true);
 						peca.x = fundoDrop.x;
-						peca.y = fundoDrop.y + 10;
+						peca.y = fundoDrop.y;
 						peca.gotoAndStop(2);
 						
 						Actuate.tween(pecaFundo, tweenTime, { x:pecaFundo.inicialPosition.x, y:pecaFundo.inicialPosition.y} );
@@ -449,17 +457,35 @@
 		}
 		
 		private var alturaPecaOver:Number;
+		private var borderRet:int = 2;
 		private function overChid(e:MouseEvent):void
 		{
 			var peca:Peca = Peca(e.target);
 			
 			if (peca.currentFundo != null) {
+				if (peca.currentFundo is FundoComBorda) {
+					Fundo(peca.currentFundo).fundo.graphics.clear();
+				}
+				var alturaAntes:Number = peca.height;
 				peca.gotoAndStop(4);
+				var alturaDepois:Number = peca.height;
 				alturaPecaOver = peca.currentFundo.height;
-				peca.currentFundo.height = peca.height;
+				//peca.currentFundo.height = alturaPecaOver * (alturaDepois / alturaAntes);
+				peca.currentFundo.scaleY = alturaDepois / alturaAntes;
+				peca.currentFundo.y = peca.y + (alturaDepois - alturaAntes) / 2;
+				if (peca.currentFundo is FundoComBorda) {
+					drawBorder(Fundo(peca.currentFundo)/*, alturaDepois / alturaAntes*/);
+				}
 			}else {
 				peca.gotoAndStop(3);
 			}
+		}
+		
+		private function drawBorder(fundo:Fundo, scale:Number = 1):void
+		{
+			fundo.fundo.graphics.clear();
+			fundo.fundo.graphics.lineStyle(1, 0x000000);
+			fundo.fundo.graphics.drawRect( (-fundo.width / 2 - borderRet), (-fundo.height / 2 - borderRet)/scale, (fundo.width + (2 * borderRet)), (fundo.height + (2 * borderRet)) / scale);
 		}
 		
 		private function outChid(e:MouseEvent):void
@@ -467,8 +493,17 @@
 			var peca:Peca = Peca(e.target);
 			
 			if (peca.currentFundo != null) {
+				if (peca.currentFundo is FundoComBorda) {
+					Fundo(peca.currentFundo).fundo.graphics.clear();
+				}
 				peca.gotoAndStop(2);
-				peca.currentFundo.height = alturaPecaOver;
+				peca.currentFundo.scaleY = 1;
+				//peca.currentFundo.height = alturaPecaOver;
+				peca.currentFundo.y = peca.y;
+				//peca.currentFundo.height = alturaPecaOver;
+				if (peca.currentFundo is FundoComBorda) {
+					drawBorder(Fundo(peca.currentFundo));
+				}
 			}else {
 				peca.gotoAndStop(1);
 			}
@@ -476,7 +511,9 @@
 		
 		override public function reset(e:MouseEvent = null):void
 		{
+			wrongWcolor = false;
 			for each (var child:Peca in pecas)  {
+				child.filters = [];
 				child.x = Peca(child).inicialPosition.x;
 				child.y = Peca(child).inicialPosition.y;
 				Peca(child).currentFundo = null;
@@ -499,10 +536,10 @@
 		private var pointsTuto:Array;
 		private var tutoBaloonPos:Array;
 		private var tutoPos:int;
-		private var tutoSequence:Array = ["Arraste os conceitos...", 
-										  "... para as caixas corretas...",
-										  "... conforme descrito nas orientações.",
-										  "Quando você tiver concluído, pressione \"terminei\"."];
+		private var tutoSequence:Array = [	"Veja aqui as orientações.",
+											"Arraste os conceitos e termos de ligação...", 
+											"... para os campos corretos.",
+											"Pressione \"terminei\" para avaliar sua resposta."];
 		
 		override public function iniciaTutorial(e:MouseEvent = null):void  
 		{
@@ -514,14 +551,14 @@
 				layerTuto.addChild(balao);
 				balao.visible = false;
 				
-				pointsTuto = 	[new Point(405, 460),
-								new Point(348 , 180),
-								new Point(650 , 543),
+				pointsTuto = 	[new Point(590, 505),
+								new Point(355 , 476),
+								new Point(325 , 210),
 								new Point(finaliza.x, finaliza.y + finaliza.height / 2)];
 								
-				tutoBaloonPos = [[CaixaTexto.BOTTON, CaixaTexto.CENTER],
+				tutoBaloonPos = [[CaixaTexto.RIGHT, CaixaTexto.FIRST],
+								[CaixaTexto.BOTTON, CaixaTexto.CENTER],
 								[CaixaTexto.TOP, CaixaTexto.CENTER],
-								[CaixaTexto.RIGHT, CaixaTexto.FIRST],
 								[CaixaTexto.TOP, CaixaTexto.FIRST]];
 			}
 			balao.removeEventListener(BaseEvent.NEXT_BALAO, closeBalao);
