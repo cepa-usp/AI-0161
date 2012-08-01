@@ -196,6 +196,8 @@
 		{
 			var status:Object = new Object();
 			
+			status.completed = completed;
+			status.score = score;
 			status.pecas = new Object();
 			
 			for each (var child:Peca in pecas)  {
@@ -220,6 +222,15 @@
 				}
 			}
 			
+			if (!connected) {
+				completed = status.completed;
+				score = status.score;
+			}
+			
+			if (completed) {
+				fixOverOut();
+				travaPecas();
+			}
 		}
 		
 		private var pecaDragging:Peca;
@@ -236,6 +247,26 @@
 				wrongWcolor = false;
 			}
 			pecaDragging = Peca(e.target);
+			
+			var peca:Peca = pecaDragging;
+			peca.removeEventListener(MouseEvent.MOUSE_OUT, outChid);
+			
+			if (peca.currentFundo != null) {
+				if (peca.currentFundo is FundoComBorda) {
+					Fundo(peca.currentFundo).fundo.graphics.clear();
+				}
+				peca.gotoAndStop(2);
+				peca.currentFundo.scaleY = 1;
+				//peca.currentFundo.height = alturaPecaOver;
+				peca.currentFundo.y = peca.y;
+				//peca.currentFundo.height = alturaPecaOver;
+				if (peca.currentFundo is FundoComBorda) {
+					drawBorder(Fundo(peca.currentFundo));
+				}
+			}else {
+				peca.gotoAndStop(1);
+			}
+			
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, verifying);
 		}
 		
@@ -441,7 +472,7 @@
 		private function makeOverOut(peca:MovieClip):void
 		{
 			peca.addEventListener(MouseEvent.MOUSE_OVER, overChid);
-			peca.addEventListener(MouseEvent.MOUSE_OUT, outChid);
+			//peca.addEventListener(MouseEvent.MOUSE_OUT, outChid);
 			pecasWover.push(peca);
 		}
 		
@@ -451,8 +482,20 @@
 			{
 				peca.removeEventListener(MouseEvent.MOUSE_OVER, overChid);
 				peca.removeEventListener(MouseEvent.MOUSE_OUT, outChid);
+				
+				if (peca.currentFundo is FundoComBorda) {
+					Fundo(peca.currentFundo).fundo.graphics.clear();
+				}
+				var alturaAntes:Number = peca.height;
 				peca.gotoAndStop(4);
-				peca.currentFundo.height = peca.height;
+				var alturaDepois:Number = peca.height;
+				alturaPecaOver = peca.currentFundo.height;
+				//peca.currentFundo.height = alturaPecaOver * (alturaDepois / alturaAntes);
+				peca.currentFundo.scaleY = alturaDepois / alturaAntes;
+				peca.currentFundo.y = peca.y + (alturaDepois - alturaAntes) / 2;
+				if (peca.currentFundo is FundoComBorda) {
+					drawBorder(Fundo(peca.currentFundo)/*, alturaDepois / alturaAntes*/);
+				}
 			}
 		}
 		
@@ -460,7 +503,10 @@
 		private var borderRet:int = 2;
 		private function overChid(e:MouseEvent):void
 		{
+			if (pecaDragging != null) return;
+			
 			var peca:Peca = Peca(e.target);
+			peca.addEventListener(MouseEvent.MOUSE_OUT, outChid);
 			
 			if (peca.currentFundo != null) {
 				if (peca.currentFundo is FundoComBorda) {
@@ -491,6 +537,7 @@
 		private function outChid(e:MouseEvent):void
 		{
 			var peca:Peca = Peca(e.target);
+			peca.removeEventListener(MouseEvent.MOUSE_OUT, outChid);
 			
 			if (peca.currentFundo != null) {
 				if (peca.currentFundo is FundoComBorda) {
@@ -511,8 +558,24 @@
 		
 		override public function reset(e:MouseEvent = null):void
 		{
+			if(connected){
+				if (completed) return;
+			}else {
+				if (completed) completed = false;
+				score = 0;
+			}
+			
 			wrongWcolor = false;
+			
 			for each (var child:Peca in pecas)  {
+				if (child.currentFundo != null) {
+					Peca(child).gotoAndStop(1);
+					Fundo(child.currentFundo).scaleY = 1;
+					Fundo(child.currentFundo).y = child.y;
+					if (child.currentFundo is FundoComBorda) {
+						drawBorder(Fundo(child.currentFundo)/*, alturaDepois / alturaAntes*/);
+					}
+				}
 				child.filters = [];
 				child.x = Peca(child).inicialPosition.x;
 				child.y = Peca(child).inicialPosition.y;
@@ -524,6 +587,13 @@
 			for each (var child2:Fundo in fundos)  {
 				Fundo(child2).currentPeca = null;
 			}
+			
+			for each (var peca:Peca in pecasWover) 
+			{
+				peca.removeEventListener(MouseEvent.MOUSE_OVER, overChid);
+				peca.addEventListener(MouseEvent.MOUSE_OVER, overChid);
+			}
+			
 			
 			//verificaFinaliza();
 			saveStatus();

@@ -49,7 +49,12 @@ package
 				posClick = new Point(ghost.mouseX, ghost.mouseY);
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, moving);
 			}
-			else ghost.startDrag();
+			else {
+				if (ghost.hitTestPoint(stage.mouseX, stage.mouseY) == false) {
+					ghost.y = stage.mouseY;
+				}
+				ghost.startDrag();
+			}
 		}
 		
 		private function moving(e:MouseEvent):void 
