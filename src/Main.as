@@ -115,7 +115,7 @@
 				var currentScore:Number = int((nCertas / nPecas) * 100);
 				
 				if (currentScore < 100) {
-					feedbackScreen.setText("Ops!... \nReveja sua resposta.\nInicie uma nova tentativa para refazer o exercício.");
+					feedbackScreen.setText("Ops!... \nReveja sua resposta.\nOs elementos destacados em vermelho estão incorretos.");
 					completed = false;
 				}
 				else {
