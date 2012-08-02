@@ -46,14 +46,12 @@
 					if(mementoSerialized != "" && mementoSerialized != "null") recoverStatus(mementoSerialized);
 				}
 			}
-			//verificaFinaliza();
 			
-			
-			if (completed) {
-				travaPecas();
-			}else iniciaTutorial();
-			
-			//if(!completed) iniciaTutorial();
+			if (connected) {
+				if (scorm.get("cmi.entry" == "ab-initio")) iniciaTutorial();
+			}else {
+				if (score == 0) iniciaTutorial();
+			}
 		}
 		
 		private function organizeLayers():void 
