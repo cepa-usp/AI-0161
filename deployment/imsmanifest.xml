@@ -17,14 +17,9 @@
 </metadata>
 <organizations default="CEPA">
 	<organization identifier="CEPA">
-		<title>Título</title>
+		<title>Agropecuária e o meio ambiente</title>
 		<item identifier="item1" identifierref="item1_resource">
-			<title>Exercício</title>
 		</item>
-		<imsss:sequencing>
-			<imsss:controlMode choiceExit="true" flow="true"/>
-			<imsss:deliveryControls completionSetByContent="true" objectiveSetByContent="true"/>
-		</imsss:sequencing>
 	</organization>
 </organizations>
 <resources>

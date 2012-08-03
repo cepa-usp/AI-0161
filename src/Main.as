@@ -48,7 +48,7 @@
 			}
 			
 			if (connected) {
-				if (scorm.get("cmi.entry" == "ab-initio")) iniciaTutorial();
+				if (scorm.get("cmi.entry") == "ab-initio") iniciaTutorial();
 			}else {
 				if (score == 0) iniciaTutorial();
 			}
@@ -765,6 +765,9 @@
 				// Salva no LMS a string que representa a situação atual da AI para ser recuperada posteriormente.
 				//mementoSerialized = marshalObjects();
 				success = scorm.set("cmi.suspend_data", mementoSerialized.toString());
+				
+				if (score > 99) success = scorm.set("cmi.success_status", "passed");
+				else success = scorm.set("cmi.success_status", "failed");
 
 				if (success)
 				{
